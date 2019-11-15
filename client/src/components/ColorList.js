@@ -1,13 +1,14 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { axiosWithAuth } from "../utils/axiosWithAuth";
+import { isPropertySignature } from "typescript";
 
 const initialColor = {
   color: "",
   code: { hex: "" }
 };
 
-const ColorList = ({ colors, updateColors }) => {
+const ColorList = ({ update, setUpdate, colors, updateColors}) => {
   console.log(colors);
   const [editing, setEditing] = useState(false);
   const [colorToEdit, setColorToEdit] = useState(initialColor);
@@ -22,9 +23,10 @@ const ColorList = ({ colors, updateColors }) => {
     e.preventDefault();
     axiosWithAuth()
       .put(`http://localhost:5000/api/colors/${colorToEdit.id}`, colorToEdit)
-      .then(res => console.log(res))
+      .then(res => setUpdate(!update))
       .catch(err => console.log(err));
     setEditing(false);
+
   };
 
   const deleteColor = color => {
@@ -32,7 +34,7 @@ const ColorList = ({ colors, updateColors }) => {
     // e.preventDefault();
     axiosWithAuth()
       .delete(`http://localhost:5000/api/colors/${color.id}`)
-      .then(res => console.log(res))
+      .then(res => setUpdate(!update))
       .catch(err => console.log(err));
   };
 
@@ -40,8 +42,12 @@ const ColorList = ({ colors, updateColors }) => {
     e.preventDefault();
     axiosWithAuth()
       .post(`http://localhost:5000/api/colors/`, newColor)
-      .then(res => console.log(res))
+      .then(res => setUpdate(!update))
       .catch(err => console.log(err));
+  }
+
+  const randomColor = e => {
+    return '#'+(Math.random()*(1<<24)|0).toString(16);
   }
 
   return (
@@ -96,6 +102,12 @@ const ColorList = ({ colors, updateColors }) => {
           <div className="button-row">
             <button type="submit">save</button>
             <button onClick={() => setEditing(false)}>cancel</button>
+            <button onClick={() => setColorToEdit({
+                  ...colorToEdit,
+                  code: { hex: randomColor() }
+                })} >
+            Randomize Color
+            </button>
           </div>
         </form>
       )}
@@ -120,8 +132,14 @@ const ColorList = ({ colors, updateColors }) => {
               })
             }
           />
-          <button>Add Color</button>
+          <button type="submit">Add Color</button>        
         </form>
+        <button onClick={() => setNewColor({
+                ...newColor,
+                code: { hex: randomColor() }
+              })}>
+          Random Color
+        </button>
       </div>
     </div>
   );
